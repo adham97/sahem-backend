@@ -2,7 +2,7 @@
 
 	$dbhost = "localhost";
 	$dbuser = "root";
-	$dbpass = "";
+	$dbpass = ""; // 7U)J#rC5fFB{tYwW
 	$dbname = "sahem"; 
 
 	$options = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8');

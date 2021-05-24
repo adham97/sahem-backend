@@ -5,8 +5,8 @@
         global $conn;
                 
         $sql_select_message = "SELECT * FROM  message 
-                            WHERE header_id = :header_id
-                            ORDER BY message_id DESC LIMIT 1";
+                                WHERE header_id = :header_id
+                                ORDER BY message_id DESC LIMIT 1";
 
         try {
             $stmt_message = $conn->prepare($sql_select_message);
