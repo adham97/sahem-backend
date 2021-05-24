@@ -1,8 +1,4 @@
 <?php
-
-	// $_POST['email_phone'] = "0568766125";
-	// $_POST['password'] = "dima123";
-
     require_once 'config.php';  
 
     if( (isset($_POST['email_phone'])) && isset($_POST['password']) ){
@@ -54,19 +50,34 @@
 
 					//**** END generate token ****//
 			
-					$sql_insert_auth = "INSERT INTO `auth_table`(`token_id`, `email_phone`, `ip_address`, `created_at`, `user_agent`) 
-										VALUES (:token_id, :email_phone, :ip_address, :created_at, :user_agent)";
+					$sql_insert_auth = "INSERT INTO `auth_table`(`token_id`, `email_phone`, `ip_address`, `user_agent`) 
+										VALUES (:token_id, :email_phone, :ip_address, :user_agent)";
 				
-					$created_at = date('Y-m-d H:i:s'); 
-
 					try{
 						$insert_auth = $conn->prepare($sql_insert_auth);
 						$insert_auth->bindParam(':token_id', $token, PDO::PARAM_STR);
 						$insert_auth->bindParam(':email_phone', $email_phone, PDO::PARAM_STR);
 						$insert_auth->bindParam(':ip_address', $ip_address, PDO::PARAM_STR);
-						$insert_auth->bindparam(':created_at', $created_at, PDO::PARAM_STR); 
 						$insert_auth->bindParam(':user_agent', $user_agent, PDO::PARAM_STR);
 						$insert_auth->execute();
+
+					}catch (PDOException $ex) {	
+
+						$response['result'] = "failed";
+						$response['code'] = 3;
+						$response['alert_message'] = "error DB: ".$ex;
+
+						die(json_encode($response));exit;
+					}
+
+					$sql_update_online = "UPDATE users SET online = :online WHERE user_id = :user_id";
+				
+					$online = '1';
+					try{
+						$insert_online = $conn->prepare($sql_update_online);
+						$insert_online->bindParam(':online', $online, PDO::PARAM_STR);
+						$insert_online->bindParam(':user_id', $auth_info['user_id'], PDO::PARAM_STR);
+						$insert_online->execute();
 
 					}catch (PDOException $ex) {	
 
@@ -90,7 +101,7 @@
 					$message['user_role'] = $auth_info['user_role'];
 					$message['image'] = $auth_info['image_path'];
 					$message['id_photo'] = $auth_info['id_photo'];
-					$message['online'] = $auth_info['online'];
+					$message['online'] = '1';
 					$message['token_id'] = $token;
 		
 					$response['result'] = "success";

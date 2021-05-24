@@ -1,5 +1,4 @@
 <?php
-	$_POST['token_id'] = 'TlE1cmdQNjA2RCEkMzAvMDQvMjEgMDE6MjE6MzghJGRpbWEyODY5QGdtYWlsLmNvbSEkOjox';
 	require_once "config.php";
 	require_once "auth_login.php";
 
@@ -26,6 +25,28 @@
 				$response['alert_message'] = "not available now11". $ex;
 			
 				die(json_encode($response)); exit;
+			}
+
+			$sql_update_online = "UPDATE users SET online = :online 
+								  WHERE email = :email
+								  OR    phone = :phone";
+				
+			$online = '0';
+			echo $email_phone;
+			try{
+				$insert_online = $conn->prepare($sql_update_online);
+				$insert_online->bindParam(':online', $online, PDO::PARAM_STR);
+				$insert_online->bindParam(':email', $email_phone, PDO::PARAM_STR);
+				$insert_online->bindParam(':phone', $email_phone, PDO::PARAM_STR);
+				$insert_online->execute();
+
+			}catch (PDOException $ex) {	
+
+				$response['result'] = "failed";
+				$response['code'] = 3;
+				$response['alert_message'] = "error DB: ".$ex;
+
+				die(json_encode($response));exit;
 			}
 			
 			$response["result"] = "success";

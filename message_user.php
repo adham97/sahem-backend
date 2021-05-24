@@ -1,6 +1,6 @@
 <?php
     // $_POST['user_id'] = '1';
-    // $_POST['token_id'] = 'aDlLYmpjR21LdSEkMjIvMDUvMjEgMDI6MjY6MDUhJDA1Njg3NjYxMjUhJDE5Mi4xNjguMS4xNTM=';
+    // $_POST['token_id'] = 'N092dXlZcTdjNSEkMjQvMDUvMjEgMDk6NTY6NDAhJDA1Njg3NjYxMjUhJDE5Mi4xNjguMS4xNTM=';
     // $_POST['is_from_sender'] = '0'; 
     // $_POST['content'] = 'Hi'; 
     // $_POST['message_type'] = '1';
@@ -41,10 +41,11 @@
 
         if($users_info && $stmt_users->rowCount() >= 1){
             require_once 'select_message.php';
-
+        
             foreach($users_info as $user){
                 $message = selectLastMessage($user->header_id);
-                $message['from_user_id'] = $user->from_user_id;
+                $message['user'] = getUser($user->from_user_id);
+                
                 array_push($users, $message);
             }
 
@@ -57,6 +58,53 @@
             $response['result'] = "failed";
             $response['code'] = 4;
             $response['alert_message'] = "Not there Message.";
+
+            die(json_encode($response));exit;
+        }
+    }
+    function getUser($user_id) {
+        global $conn;    
+
+        $sql_select_user = "SELECT * FROM  users
+                            WHERE user_id = :user_id";
+
+        try {
+            $stmt_user = $conn->prepare($sql_select_user);
+            $stmt_user->bindParam(':user_id', $user_id, PDO::PARAM_STR);
+            $stmt_user->execute(); 
+
+        } catch (PDOException $ex) {  
+
+            $response['result'] = "failed";
+            $response['code'] = 3;
+            $response['alert_message'] = "error DB: ".$ex;
+
+            die(json_encode($response));exit;
+        }
+
+        $user_info = $stmt_user->fetch();
+
+        if($user_info && $stmt_user->rowCount() == 1){
+            $message['user_id'] = $user_info['user_id'];				
+            $message['first_name'] = $user_info['first_name'];
+            $message['father_name'] = $user_info['father_name'];
+            $message['grandfather_name'] = $user_info['grandfather_name'];
+            $message['last_name'] = $user_info['last_name'];
+            $message['email'] = $user_info['email'];
+            $message['identify_id'] = $user_info['identify_id'];
+            $message['phone'] = $user_info['phone'];
+            $message['city'] = $user_info['city'];
+            $message['street'] = $user_info['street'];
+            $message['user_role'] = $user_info['user_role'];
+            $message['image'] = $user_info['image_path'];
+            $message['online'] = $user_info['online'];
+
+            return $message;
+
+        } else {
+            $response['result'] = "failed";
+            $response['code'] = 4;
+            $response['alert_message'] = "Not there user";
 
             die(json_encode($response));exit;
         }
