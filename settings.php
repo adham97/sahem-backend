@@ -1,5 +1,4 @@
-<?php
-		
+<?php		
 	header("Access-Control_Allow_Origin: *");
 	header("Access-Control-Allow-Credentials: true");
 	header("Access-Control-Allow-Headers: application/json;charset=utf-8"); 
@@ -19,3 +18,10 @@
 	$response['data'] = $data;
 	die(json_encode($response));exit;
 ?>
+
+
+{
+	"key_value": "value",
+}
+
+array[$i] = value;

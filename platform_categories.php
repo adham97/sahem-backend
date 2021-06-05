@@ -1,6 +1,5 @@
 <?php
     require_once 'config.php';
-       
     $sql_select = "SELECT * FROM `platform_categories`";
 
     try {

@@ -37,6 +37,7 @@
                 $message['name_ar'] = $platform->name_ar;
                 $message['description_en'] = $platform->description_en;
                 $message['description_ar'] = $platform->description_ar;
+                // $message['acceptance_id'] = $platform->acceptance_id;
                 $message['user_id'] = $platform->user_id;
                 $message['created_at'] = $platform->created_at;
   
