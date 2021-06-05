@@ -9,7 +9,7 @@
 	// $_POST['description'] = "Blood Type A + at Rafidia Hospital";
 
 	if(isset($_POST['platform_categories_id']) && isset($_POST['user_id_photo']) && isset($_POST['photo_name']) 
-    && isset($_POST['user_id']) && isset($_POST['option'])) {
+    && isset($_POST['user_id']) && isset($_POST['option']) && isset($_POST['card_id']) && isset($_POST['address_id'])) {
 
 		require_once 'config.php';
 		$platform_categories_id = check_security($_POST['platform_categories_id'], 'string');
@@ -20,6 +20,8 @@
         $image_path = 'images/user_id_photo/'.$photo_name;
         file_put_contents($image_path, $realImage);
         $option = check_security($_POST['option'], 'string');
+        $card_id = check_security($_POST['card_id'], 'string');
+        $address_id = check_security($_POST['address_id'], 'string');
 
         switch ($option) {
             case 'en':
@@ -29,7 +31,6 @@
                     $name_ar = Translation('en', 'ar', $name_en);
                     $description_en = check_security($_POST['description'], 'string'); 
                     $description_ar = Translation('en', 'ar', $description_en);  
-                    // echo  assistance($platform_categories_id, $user_id, $name_en, $name_ar, $description_en, $description_ar);
                 }
                 break;
             case 'ar':
@@ -39,7 +40,6 @@
                     $name_en = Translation('ar', 'en', $name_ar);
                     $description_ar = check_security($_POST['description'], 'string'); 
                     $description_en = Translation('ar', 'en', $description_ar);  
-                    // echo assistance($platform_categories_id, $user_id, $name_en, $name_ar, $description_en, $description_ar);
                 }
                 break;
             default:
@@ -52,10 +52,12 @@
         }
 
         $sql_insert_assistance = "INSERT INTO assistance_request (user_id, user_id_photo, platform_categories_id, name_en, 
-        name_ar, description_en, description_ar, acceptance_id) VALUES (:user_id, :user_id_photo, :platform_categories_id, :name_en, 
-        :name_ar, :description_en, :description_ar, :acceptance_id)"; 
+        name_ar, description_en, description_ar, acceptance_id, card_id, address_id) VALUES (:user_id, :user_id_photo, 
+        :platform_categories_id, :name_en, :name_ar, :description_en, :description_ar, :acceptance_id, :card_id, :address_id)"; 
 
         $acceptance_id = '1';
+        if($card_id == '0')
+            $card_id = '1';
         
         try {
             $stmt_insert_assistance = $conn->prepare($sql_insert_assistance);
@@ -67,6 +69,8 @@
             $stmt_insert_assistance->bindparam(':description_en', $description_en, PDO::PARAM_STR);
             $stmt_insert_assistance->bindparam(':description_ar', $description_ar, PDO::PARAM_STR);
             $stmt_insert_assistance->bindparam(':acceptance_id', $acceptance_id, PDO::PARAM_STR);
+            $stmt_insert_assistance->bindparam(':card_id', $card_id, PDO::PARAM_STR);
+            $stmt_insert_assistance->bindparam(':address_id', $address_id, PDO::PARAM_STR);
             $stmt_insert_assistance->execute();		
         
         }  catch (PDOException $ex) {	

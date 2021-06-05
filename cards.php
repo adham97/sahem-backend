@@ -31,6 +31,10 @@
                 insertCard();
                 break;
 
+            case 'get_card':
+                getCard($user_id);
+                break;
+
             default:
                 $response['result'] = "failed";
                 $response['code'] = 6;
@@ -136,4 +140,42 @@
             die(json_encode($response));exit;
         }
    }
+   
+   function getCard($user_id) { 
+        global $conn;
+
+        $sql_select_card = "SELECT * FROM  cards WHERE user_id = :user_id ORDER BY card_id DESC LIMIT 1";
+
+        try {
+            $stmt_card = $conn->prepare($sql_select_card);
+            $stmt_card->bindParam(':user_id', $user_id, PDO::PARAM_STR);
+            $stmt_card->execute(); 
+
+        } catch (PDOException $ex) {  
+
+            $response['result'] = "failed";
+            $response['code'] = 3;
+            $response['alert_message'] = "error DB: ".$ex;
+
+            die(json_encode($response));exit;
+        }
+
+        $card_info = $stmt_card->fetch();
+
+        if($card_info && $stmt_card->rowCount() == 1){
+            $card_id = $card_info['card_id'];
+
+            $response['result'] = "success";
+            $response['code'] = 1;
+            $response['message'] = $card_id;
+
+            die(json_encode($response));exit;
+        } else {
+            $response['result'] = "failed";
+            $response['code'] = 4;
+            $response['message'] = 0;
+
+            die(json_encode($response));exit;
+        }
+    }
 ?>

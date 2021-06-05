@@ -54,7 +54,7 @@
             VALUES (:body, :user_id, :title, :notification_type_id, :status_id)"; 
             $body = $conn->lastInsertId();
             $status_id = '1';
-            $title = 'donate a money to the';
+            $title = 'donate a money for you';
             $notification_type_id = '4';
             try {
                 $stmt_insert_notifications = $conn->prepare($sql_insert_notifications);
@@ -108,7 +108,7 @@
             VALUES (:body, :user_id, :title, :notification_type_id, :status_id)"; 
             $body = $conn->lastInsertId();
             $status_id = '1';
-            $title = 'donate a parcel to the';
+            $title = 'donate a parcel';
             $notification_type_id = '4';
             try {
                 $stmt_insert_notifications = $conn->prepare($sql_insert_notifications);

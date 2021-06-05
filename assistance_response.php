@@ -45,5 +45,39 @@
 
             die(json_encode($response));exit;
         }
+
+        $user_id = check_security($_POST['user_id'], 'string');
+
+        $sql_insert_notifications = "INSERT INTO notifications (body, user_id, title, notification_type_id, status_id) 
+        VALUES (:body, :user_id, :title, :notification_type_id, :status_id)"; 
+        $body = $assistance_request_id;
+        $status_id = 1;
+        if($acceptance_id == '2')
+            $title = 'Your request has been accepted and sent';
+        else 
+            $title = 'Your request has been rejected';
+        $notification_type_id = 3;
+        try {
+            $stmt_insert_notifications = $conn->prepare($sql_insert_notifications);
+            $stmt_insert_notifications->bindparam(':body', $body, PDO::PARAM_STR);
+            $stmt_insert_notifications->bindparam(':user_id', $user_id, PDO::PARAM_STR);
+            $stmt_insert_notifications->bindparam(':title', $title, PDO::PARAM_STR);
+            $stmt_insert_notifications->bindparam(':notification_type_id', $notification_type_id, PDO::PARAM_STR);
+            $stmt_insert_notifications->bindparam(':status_id', $status_id, PDO::PARAM_STR);
+            $stmt_insert_notifications->execute();		
+        }  catch (PDOException $ex) {	
+        
+            $response['result'] = "failed";
+            $response['code'] = 3;
+            $response['alert_message'] = "Try Agin, error DB: ".$ex;
+
+            die(json_encode($response));exit;
+        }
+
+        $response['result'] = "success";
+        $response['code'] = 1;
+        $response['message'] = "Acceptance Done";
+
+        die(json_encode($response));exit;
     }
 ?>	

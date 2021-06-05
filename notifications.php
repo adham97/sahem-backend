@@ -1,11 +1,12 @@
 <?php
     // $_POST['notifications_id'] = '1';
-    // $_POST['token_id'] = 'cm1hZmZKRlkzTiEkMjgvMDUvMjEgMDE6MDE6NDghJGFobWFkNTZAZ21haWwuY29tISQxOTIuMTY4LjEuMTUz';
-    // $_POST['is_from_sender'] = '0'; 
-    // $_POST['content'] = 'Hi'; 
+    $_POST['token_id'] = 'akJ1elh1ampnaSEkMDUvMDYvMjEgMDY6Mjk6MTghJGRpbWEyODY5QGdtYWlsLmNvbSEkMTkyLjE2OC4xLjE1Mw==';
+    $_POST['role'] = '4'; 
+    // $_POST['user_id'] = '4'; 
     // $_POST['message_type'] = '1';
     // $_POST['type'] = '2';
     // $_POST['number']= '1';
+
     if (empty(isset($_POST['token_id']))) {		
 		
         $response['result'] = "failed" ;
@@ -76,67 +77,198 @@
 
         } else {
 
-            $sql_select_notification = "SELECT * FROM notifications 
-                                        WHERE notification_type_id = 1 
-                                        OR    notification_type_id = 2";
+            if(!empty(isset($_POST['role']))) {
 
-            try {
-                $stmt_notification = $conn->prepare($sql_select_notification);
-                $stmt_notification->execute();
+                $role = check_security($_POST['role'], 'string');
+                $sql_select_notification = "";
+                if($role == '1' || $role == '2'){
+                    $sql_select_notification = "SELECT * FROM notifications 
+                    WHERE notification_type_id = 1 
+                    OR    notification_type_id = 2
+                    ORDER BY notifications_id DESC";
 
-            } catch (PDOException $ex) {	
+                    try {
+                        $stmt_notification = $conn->prepare($sql_select_notification);
+                        $stmt_notification->execute();
 
-                $response['result'] = "failed";
-                $response['code'] = 3;
-                $response['alert_message'] = "error DB: ".$ex;
+                    } catch (PDOException $ex) {	
 
-                die(json_encode($response));exit;
-            }
+                        $response['result'] = "failed";
+                        $response['code'] = 3;
+                        $response['alert_message'] = "error DB: ".$ex;
 
-            $notification_info = $stmt_notification->fetchAll(PDO::FETCH_OBJ);
-            $notifications = array();
+                        die(json_encode($response));exit;
+                    }
 
-            if($notification_info && $stmt_notification->rowCount() >= 1){
-                foreach($notification_info as $notification) {
-                    switch ($notification->notification_type_id) {
-                        case '1':
-                        $body = selectAssistance($notification->body);
-                        break;
+                    $notification_info = $stmt_notification->fetchAll(PDO::FETCH_OBJ);
+                    $notifications = array();
 
-                    default:
+                    if($notification_info && $stmt_notification->rowCount() >= 1){
+                        foreach($notification_info as $notification) {
+                            switch ($notification->notification_type_id) {
+                                case '1':
+                                $body = selectAssistance($notification->body);
+                                break;
+
+                            default:
+                                $response['result'] = "failed";
+                                $response['code'] = 4;
+                                $response['alert_message'] = "Check your information";
+                                die(json_encode($response));exit;
+                                break;
+                            }
+
+                            $message['id'] = $notification->notifications_id;
+                            $message['title'] = $notification->title;
+                            $message['notification_type_id'] = $notification->notification_type_id;
+                            $message['status_id'] = $notification->status_id;
+                            $message['date'] = $notification->date;
+                            // $temp = array();
+                            $temp['assistance'] = $body['assistance'];				
+                            $temp['platform_categories'] = getPlatformCategories($body['platform_categories_id']);	
+                            $message['body'] = $temp;
+                            $message['user'] = getUser($notification->user_id);
+                            array_push($notifications, $message);
+                        }
+
+                        $response['result'] = "success";
+                        $response['code'] = 1;
+                        $response['message'] = $notifications;
+
+                        die(json_encode($response));exit;
+
+                    } else {
                         $response['result'] = "failed";
                         $response['code'] = 4;
-                        $response['alert_message'] = "Check your information";
+                        $response['alert_message'] = "Not there notification.";
+
                         die(json_encode($response));exit;
-                        break;
                     }
-          
-                    $message['id'] = $notification->notifications_id;
-                    $message['title'] = $notification->title;
-                    $message['notification_type_id'] = $notification->notification_type_id;
-                    $message['status_id'] = $notification->status_id;
-                    $message['date'] = $notification->date;
-                    // $temp = array();
-                    $temp['assistance'] = $body['assistance'];				
-                    $temp['platform_categories'] = getPlatformCategories($body['platform_categories_id']);	
-                    $message['body'] = $temp;
-                    $message['user'] = getUser($notification->user_id);
-                    array_push($notifications, $message);
+
+                }
+  
+                if($role == '3'){
+                    $user_id = check_security($_POST['user_id'], 'string');
+
+                    $sql_select_notification = "SELECT * FROM notifications 
+                                                WHERE user_id = :user_id
+                                                ORDER BY notifications_id DESC";
+
+                    try {
+                        $stmt_notification = $conn->prepare($sql_select_notification);
+                        $stmt_notification->bindparam(':user_id', $user_id, PDO::PARAM_STR);
+                        $stmt_notification->execute();
+
+                    } catch (PDOException $ex) {	
+
+                        $response['result'] = "failed";
+                        $response['code'] = 3;
+                        $response['alert_message'] = "error DB: ".$ex;
+
+                        die(json_encode($response));exit;
+                    }
+
+                    $notification_info = $stmt_notification->fetchAll(PDO::FETCH_OBJ);
+                    $notifications = array();
+
+                    if($notification_info && $stmt_notification->rowCount() >= 1){
+                        foreach($notification_info as $notification) {
+                            if($notification->notification_type_id == '3') {
+                                $body = selectAssistance($notification->body);
+
+                                $message['id'] = $notification->notifications_id;
+                                $message['title'] = $notification->title;
+                                $message['notification_type_id'] = $notification->notification_type_id;
+                                $message['status_id'] = $notification->status_id;
+                                $message['date'] = $notification->date;
+                                $temp['assistance'] = $body['assistance'];				
+                                $temp['platform_categories'] = getPlatformCategories($body['platform_categories_id']);	
+                                $message['body'] = $temp;
+                                $message['user'] = getUser($user_id);
+                                array_push($notifications, $message);
+                            }
+
+                            else if($notification->notification_type_id == '4') {
+
+                                $message['id'] = $notification->notifications_id;
+                                $message['title'] = $notification->title;
+                                $message['notification_type_id'] = $notification->notification_type_id;
+                                $message['status_id'] = $notification->status_id;
+                                $message['date'] = $notification->date;
+                                $message['body'] = $temp;
+                                $message['user'] = getUser($user_id);
+                                array_push($notifications, $message);
+                            }
+                        }
+
+                        $response['result'] = "success";
+                        $response['code'] = 1;
+                        $response['message'] = $notifications;
+
+                        die(json_encode($response));exit;
+
+                    } else {
+                        $response['result'] = "failed";
+                        $response['code'] = 4;
+                        $response['alert_message'] = "Not there notification.";
+
+                        die(json_encode($response));exit;
+                    }
                 }
 
-                $response['result'] = "success";
-                $response['code'] = 1;
-                $response['message'] = $notifications;
+                if($role == '4'){
 
-                die(json_encode($response));exit;
+                    $sql_select_notification = "SELECT * FROM notifications 
+                                                WHERE notification_type_id = 4
+                                                ORDER BY notifications_id DESC";
 
-            } else {
-                $response['result'] = "failed";
-                $response['code'] = 4;
-                $response['alert_message'] = "Not there notification.";
+                    try {
+                        $stmt_notification = $conn->prepare($sql_select_notification);
+                        $stmt_notification->execute();
 
-                die(json_encode($response));exit;
-            }
+                    } catch (PDOException $ex) {	
+
+                        $response['result'] = "failed";
+                        $response['code'] = 3;
+                        $response['alert_message'] = "error DB: ".$ex;
+
+                        die(json_encode($response));exit;
+                    }
+
+                    $notification_info = $stmt_notification->fetchAll(PDO::FETCH_OBJ);
+                    $notifications = array();
+
+                    if($notification_info && $stmt_notification->rowCount() >= 1){
+                        foreach($notification_info as $notification) {
+                            if(typePayment($notification->body) == 'address'){
+                                $body = selectPayment($notification->body);
+
+                                $message['id'] = $notification->notifications_id;
+                                $message['title'] = $notification->title;
+                                $message['notification_type_id'] = $notification->notification_type_id;
+                                $message['status_id'] = $notification->status_id;
+                                $message['date'] = $notification->date;
+                                $message['body'] = $body;
+                                $message['user'] = getUser($notification->user_id);
+                                array_push($notifications, $message);    
+                            }
+                        }
+
+                        $response['result'] = "success";
+                        $response['code'] = 1;
+                        $response['message'] = $notifications;
+
+                        die(json_encode($response));exit;
+
+                    } else {
+                        $response['result'] = "failed";
+                        $response['code'] = 4;
+                        $response['alert_message'] = "Not there notification.";
+
+                        die(json_encode($response));exit;
+                    }
+                }
+            }  
         }
     }
 
@@ -187,6 +319,80 @@
             $response['alert_message'] = "Not there assistance.";
 
             die(json_encode($response));exit;
+        }
+    }
+
+    function selectPayment($payments_id) {
+        global $conn;
+
+        $sql_select_payment = "SELECT * FROM payments p, delivery_addresses d 
+                               WHERE p.address_id = d.address_id
+                               AND p.id = :payments_id";
+
+        try{
+            $stmt_payment = $conn->prepare($sql_select_payment);
+            $stmt_payment->bindparam(':payments_id', $payments_id, PDO::PARAM_STR);
+            $stmt_payment->execute();
+
+        }catch (PDOException $ex) {	
+
+            $response['result'] = "failed";
+            $response['code'] = 3;
+            $response['alert_message'] = "error DB: ".$ex;
+
+            die(json_encode($response));exit;
+        }
+
+        $payment_info = $stmt_payment->fetch();
+        
+        if($payment_info && $stmt_payment->rowCount() == 1){
+            $address['address_id'] = $payment_info['address_id'];
+            $address['locality'] = $payment_info['locality'];
+            $address['postal_code'] = $payment_info['postal_code'];
+            $address['country'] = $payment_info['country'];
+            $address['latitude'] = $payment_info['latitude']; 	
+            $address['longitude'] = $payment_info['longitude']; 
+            $address['user_id'] = $payment_info['user_id'];
+
+            $response['platform_id'] = $payment_info['platform_id'];
+            $response['description'] = $payment_info['description'];
+            $response['address'] = $address;      
+           
+            return $response;
+        } else {    
+            $response['result'] = "failed";
+            $response['code'] = 4;
+            $response['alert_message'] = "Not there assistance.";
+
+            die(json_encode($response));exit;
+        }
+    }
+
+    function typePayment($payments_id) {
+        global $conn;
+
+        $sql_select_payment = "SELECT * FROM payments 
+                               WHERE payment_method_id = 2
+                               AND id = :payments_id";
+
+        try{
+            $stmt_payment = $conn->prepare($sql_select_payment);
+            $stmt_payment->bindparam(':payments_id', $payments_id, PDO::PARAM_STR);
+            $stmt_payment->execute();
+
+        }catch (PDOException $ex) {	
+
+            $response['result'] = "failed";
+            $response['code'] = 3;
+            $response['alert_message'] = "error DB: ".$ex;
+
+            die(json_encode($response));exit;
+        }
+
+        $payment_info = $stmt_payment->fetch();
+        
+        if($payment_info && $stmt_payment->rowCount() == 1){
+           return 'address';
         }
     }
 
