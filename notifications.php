@@ -1,7 +1,7 @@
 <?php
     // $_POST['notifications_id'] = '1';
-    $_POST['token_id'] = 'akJ1elh1ampnaSEkMDUvMDYvMjEgMDY6Mjk6MTghJGRpbWEyODY5QGdtYWlsLmNvbSEkMTkyLjE2OC4xLjE1Mw==';
-    $_POST['role'] = '4'; 
+    // $_POST['token_id'] = 'SDhwUlg2NUFmUyEkMDYvMDYvMjEgMDU6Mzg6MzMhJGRpbWFAZ21haWwuY29tISQxOTIuMTY4LjEuMTUz';
+    // $_POST['role'] = '1'; 
     // $_POST['user_id'] = '4'; 
     // $_POST['message_type'] = '1';
     // $_POST['type'] = '2';
@@ -41,11 +41,17 @@
                 die(json_encode($response));exit;
             }
 
-        } else if(!empty(isset($_POST['number']))){
-            $sql_select_number = "SELECT * FROM notifications WHERE status_id = 1";
+        } else if(!empty(isset($_POST['number'])) && !empty(isset($_POST['notification_type_id']))){
+
+            $notification_type_id = check_security($_POST['notification_type_id'], 'string');
+
+            $sql_select_number = "SELECT * FROM notifications 
+                                  WHERE status_id = 1 
+                                  AND notification_type_id = :notification_type_id";
 
             try {
                 $stmt_number = $conn->prepare($sql_select_number);
+                $stmt_status->bindParam(':notification_type_id', $notification_type_id, PDO::PARAM_STR);
                 $stmt_number->execute();
 
             } catch (PDOException $ex) {	
@@ -83,9 +89,8 @@
                 $sql_select_notification = "";
                 if($role == '1' || $role == '2'){
                     $sql_select_notification = "SELECT * FROM notifications 
-                    WHERE notification_type_id = 1 
-                    OR    notification_type_id = 2
-                    ORDER BY notifications_id DESC";
+                                                WHERE notification_type_id = 1 
+                                                ORDER BY notifications_id DESC";
 
                     try {
                         $stmt_notification = $conn->prepare($sql_select_notification);
@@ -123,10 +128,9 @@
                             $message['notification_type_id'] = $notification->notification_type_id;
                             $message['status_id'] = $notification->status_id;
                             $message['date'] = $notification->date;
-                            // $temp = array();
-                            $temp['assistance'] = $body['assistance'];				
-                            $temp['platform_categories'] = getPlatformCategories($body['platform_categories_id']);	
-                            $message['body'] = $temp;
+                            // $temp['assistance'] = $body['assistance'];				
+                            // $temp['platform_categories'] = getPlatformCategories($body['platform_categories_id']);	
+                            $message['body'] = $body;
                             $message['user'] = getUser($notification->user_id);
                             array_push($notifications, $message);
                         }
@@ -170,10 +174,10 @@
 
                     $notification_info = $stmt_notification->fetchAll(PDO::FETCH_OBJ);
                     $notifications = array();
-
+                    
                     if($notification_info && $stmt_notification->rowCount() >= 1){
                         foreach($notification_info as $notification) {
-                            if($notification->notification_type_id == '3') {
+                            if($notification->notification_type_id == '2') {
                                 $body = selectAssistance($notification->body);
 
                                 $message['id'] = $notification->notifications_id;
@@ -188,7 +192,7 @@
                                 array_push($notifications, $message);
                             }
 
-                            else if($notification->notification_type_id == '4') {
+                            else if($notification->notification_type_id == '3') {
 
                                 $message['id'] = $notification->notifications_id;
                                 $message['title'] = $notification->title;
@@ -313,12 +317,6 @@
             $response['platform_categories_id'] = $assistance_info['platform_categories_id'];
 
             return $response;
-        } else {    
-            $response['result'] = "failed";
-            $response['code'] = 4;
-            $response['alert_message'] = "Not there assistance.";
-
-            die(json_encode($response));exit;
         }
     }
 
@@ -359,12 +357,6 @@
             $response['address'] = $address;      
            
             return $response;
-        } else {    
-            $response['result'] = "failed";
-            $response['code'] = 4;
-            $response['alert_message'] = "Not there assistance.";
-
-            die(json_encode($response));exit;
         }
     }
 
@@ -433,12 +425,6 @@
             $message['id_photo'] = $user_info['id_photo'];
 
             return $message;
-        } else {
-            $response['result'] = "failed";
-            $response['code'] = 4;
-            $response['alert_message'] = "Not there user";
-
-            die(json_encode($response));exit;
         }
     }
 
@@ -471,12 +457,6 @@
             $message['image'] = $platform_categories_info['image_path'];
 
             return $message;
-        } else {
-            $response['result'] = "failed";
-            $response['code'] = 4;
-            $response['alert_message'] = "Not there user";
-
-            die(json_encode($response));exit;
         }
     }
 ?>

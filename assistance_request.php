@@ -3,10 +3,13 @@
 	// $_POST['platform_categories_id'] = "2";
     // $_POST['user_id_photo'] = "hi";
     // $_POST['photo_name'] = 'adham';
-	// $_POST['user_id'] = "2";
+	// $_POST['user_id'] = "3";
 	// $_POST['option'] = "en";
 	// $_POST['name'] = "Two blood units";
 	// $_POST['description'] = "Blood Type A + at Rafidia Hospital";
+    // $_POST['card_id'] = "1";
+	// $_POST['address_id'] = "1";
+    
 
 	if(isset($_POST['platform_categories_id']) && isset($_POST['user_id_photo']) && isset($_POST['photo_name']) 
     && isset($_POST['user_id']) && isset($_POST['option']) && isset($_POST['card_id']) && isset($_POST['address_id'])) {
