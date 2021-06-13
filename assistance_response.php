@@ -1,83 +1,87 @@
 <?php
-	if(!empty(isset($_POST['token_id'])) && !empty(isset($_POST['assistance_request_id'])) && isset($_POST['option'])) {
-
-		require_once 'config.php';
+    if( !empty(isset($_POST['token_id'])) ) {
+        require_once 'config.php';
         require_once 'auth_login.php';
         $user = is_login();
+   
+        if( !empty(isset($_POST['platform_categories_id'])) ) {
+            require_once 'helper.php';
 
-		$assistance_request_id = check_security($_POST['assistance_request_id'], 'string');
-        $option = check_security($_POST['option'], 'string');
+            $platform_categories_id = check_security($_POST['platform_categories_id'], 'string');
 
-        switch ($option) {
-            case '2':
-                updateAssistance($option, $assistance_request_id);
-                break;
-            case '3':
-                updateAssistance($option, $assistance_request_id);
-                break;
-            default:
-                $response['result'] = "failed";
-                $response['code'] = 6;
-                $response['alert_message'] = "These privacy shortcuts are confidential";
+            $platformCategories = getPlatformCategories($platform_categories_id);
 
-                die(json_encode($response));exit;
-                break;
-        }
-	}
-
-    function updateAssistance($acceptance_id, $assistance_request_id) {
-        global $conn;
-        $sql_update_assistance = "UPDATE assistance_request
-                                  SET acceptance_id = :acceptance_id 
-                                  WHERE assistance_request_id = :assistance_request_id"; 
-
-        try {
-            $stmt_update = $conn->prepare($sql_update_assistance);
-            $stmt_update->bindparam(':acceptance_id', $acceptance_id, PDO::PARAM_STR);
-            $stmt_update->bindparam(':assistance_request_id', $assistance_request_id, PDO::PARAM_STR);  
-            $stmt_update->execute();		
-        
-        }  catch (PDOException $ex) {	
-        
-            $response['result'] = "failed";
-            $response['code'] = 3;
-            $response['alert_message'] = "Try Agin, error DB: ".$ex;
+            $response['result'] = "success";
+            $response['code'] = 1;
+            $response['message'] = $platformCategories;
 
             die(json_encode($response));exit;
         }
 
-        $user_id = check_security($_POST['user_id'], 'string');
+        if( !empty(isset($_POST['assistance'])) && !empty(isset($_POST['acceptance_id'])) ) {
+            require_once 'helper.php';
 
-        $sql_insert_notifications = "INSERT INTO notifications (body, user_id, title, notification_type_id, status_id) 
-        VALUES (:body, :user_id, :title, :notification_type_id, :status_id)"; 
-        $body = $assistance_request_id;
-        $status_id = 1;
-        if($acceptance_id == '2')
-            $title = 'Your request has been accepted and sent';
-        else 
-            $title = 'Your request has been rejected';
-        $notification_type_id = 3;
-        try {
-            $stmt_insert_notifications = $conn->prepare($sql_insert_notifications);
-            $stmt_insert_notifications->bindparam(':body', $body, PDO::PARAM_STR);
-            $stmt_insert_notifications->bindparam(':user_id', $user_id, PDO::PARAM_STR);
-            $stmt_insert_notifications->bindparam(':title', $title, PDO::PARAM_STR);
-            $stmt_insert_notifications->bindparam(':notification_type_id', $notification_type_id, PDO::PARAM_STR);
-            $stmt_insert_notifications->bindparam(':status_id', $status_id, PDO::PARAM_STR);
-            $stmt_insert_notifications->execute();		
-        }  catch (PDOException $ex) {	
-        
-            $response['result'] = "failed";
-            $response['code'] = 3;
-            $response['alert_message'] = "Try Agin, error DB: ".$ex;
+            $assistance_obj = json_decode($_POST['assistance']);
+    
+            foreach ($assistance_obj as $element) 
+                $assistance_array[] = $element;
+    
+            $assistance_id = check_security($assistance_array[0], 'string');
+            $platform['user_id'] = check_security($assistance_array[1], 'string');
+            $platform['platform_categories_id'] = check_security($assistance_array[3], 'string');
+            $platform['name_en'] = check_security($assistance_array[4], 'string');
+            $platform['name_ar'] = check_security($assistance_array[5], 'string');
+            $platform['description_en'] = check_security($assistance_array[6], 'string');
+            $platform['description_ar'] = check_security($assistance_array[7], 'string');
+       
+            $acceptance_id = check_security($_POST['acceptance_id'], 'string');
+            
+            switch ($acceptance_id) {
+                case '2':
+                    updateAssistances($assistance_id, $acceptance_id);
+                    $platform_id = addPlatform($platform);
+                    
+                    $notification['user_id'] = $platform['user_id'];
+                    $notification['body_id'] = $assistance_id;
+                    $notification['title'] = "agreed to request for ". $platform['name_en'];
+                    $notification['notification_type_id'] = "2";
+                    $notification['status_id'] = "1";
+            
+                    addNotification($notification);
+            
+                    $response['result'] = "success";
+                    $response['code'] = 1;
+                    $response['message'] = $platform_id;
 
-            die(json_encode($response));exit;
+                    die(json_encode($response));exit;
+                    break;
+                
+                case '3':
+                    updateAssistances($assistance_id, $acceptance_id);
+                    
+                    $notification['user_id'] = $platform['user_id'];
+                    $notification['body_id'] = $assistance_id;
+                    $notification['title'] = "refused to request for ". $platform['name_en'];
+                    $notification['notification_type_id'] = "3";
+                    $notification['status_id'] = "1";
+            
+                    addNotification($notification);
+            
+                    $response['result'] = "success";
+                    $response['code'] = 1;
+                    $response['message'] = "Reques has been rejected";
+
+                    die(json_encode($response));exit;
+                    break;
+            
+                default:
+                    $response['result'] = "failed";
+                    $response['code'] = 6;
+                    $response['alert_message'] = "These privacy shortcuts are confidential";
+
+                    die(json_encode($response));exit;        
+                    break;
+            }
         }
-
-        $response['result'] = "success";
-        $response['code'] = 1;
-        $response['message'] = "Acceptance Done";
-
-        die(json_encode($response));exit;
     }
-?>	
+?>

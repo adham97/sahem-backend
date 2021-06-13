@@ -1,6 +1,6 @@
 <?php
     // $_POST['user_id'] = '1';
-    // $_POST['token_id'] = 'N092dXlZcTdjNSEkMjQvMDUvMjEgMDk6NTY6NDAhJDA1Njg3NjYxMjUhJDE5Mi4xNjguMS4xNTM=';
+    // $_POST['token_id'] = 'aEpUazdjOHNIOCEkMDgvMDYvMjEgMDQ6MTM6MjAhJGRpbWFAZ21haWwuY29tISQxOTIuMTY4LjEuMTUz';
     // $_POST['is_from_sender'] = '0'; 
     // $_POST['content'] = 'Hi'; 
     // $_POST['message_type'] = '1';
@@ -62,6 +62,7 @@
             die(json_encode($response));exit;
         }
     }
+    
     function getUser($user_id) {
         global $conn;    
 
