@@ -1,6 +1,35 @@
 <?php
     require_once 'config.php';
 
+    function addDonationStore($donation_store) {
+        global $conn;
+
+        $sql_insert = "INSERT INTO donation_store (user_id, name_en, name_ar, description_en, description_ar, address_id, image, status) 
+                       VALUE (:user_id, :name_en, :name_ar, :description_en, :description_ar, :address_id, :image, :status)"; 
+
+        try {
+            $stmt_insert = $conn->prepare($sql_insert);
+            $stmt_insert->bindparam(':user_id', $donation_store['user_id'], PDO::PARAM_STR);
+            $stmt_insert->bindparam(':name_en', $donation_store['name_en'], PDO::PARAM_STR); 
+            $stmt_insert->bindparam(':name_ar', $donation_store['name_ar'], PDO::PARAM_STR); 
+            $stmt_insert->bindparam(':description_en', $donation_store['description_en'], PDO::PARAM_STR); 
+            $stmt_insert->bindparam(':description_ar', $donation_store['description_ar'], PDO::PARAM_STR); 
+            $stmt_insert->bindparam(':address_id', $donation_store['address_id'], PDO::PARAM_STR); 
+            $stmt_insert->bindparam(':image', $donation_store['image'], PDO::PARAM_STR); 
+            $stmt_insert->bindparam(':status', $donation_store['status'], PDO::PARAM_STR); 
+            $stmt_insert->execute();		
+
+        }  catch (PDOException $ex) {	
+
+            $response['result'] = "failed";
+            $response['code'] = 3;
+            $response['alert_message'] = "Try Agin, error DB: ".$ex;
+
+            die(json_encode($response));exit;
+        }
+        return $conn->lastInsertId();
+    }
+
     function addCard($card) {
         global $conn;
 
@@ -405,6 +434,43 @@
             
             return $cards;
         
+        } 
+    }
+
+    
+    function getDonation($donation_store_id) {
+        global $conn;
+
+        $sql_select_donation = "SELECT * FROM donation_store WHERE donation_store_id = :donation_store_id";
+
+        try {
+            $stmt_donation = $conn->prepare($sql_select_donation);
+            $stmt_donation->bindParam(':donation_store_id', $donation_store_id, PDO::PARAM_STR);
+            $stmt_donation->execute();		
+            
+        }  catch (PDOException $ex) {	
+            
+            $response['result'] = "failed";
+            $response['code'] = 3;
+            $response['alert_message'] = "Try Agin, error DB: ".$ex;
+        
+            die(json_encode($response));exit;
+        }
+
+        $donation_info = $stmt_donation->fetch();
+
+        if($donation_info && $stmt_donation->rowCount() == 1) {
+            $message['donation_store_id'] = $donation_info['donation_store_id'];
+            $message['user_id'] = $donation_info['user_id'];
+            $message['name_en'] = $donation_info['name_en'];
+            $message['name_ar'] = $donation_info['name_ar'];
+            $message['description_en'] = $donation_info['description_en'];            
+            $message['description_ar'] = $donation_info['description_en'];
+            $message['address_id'] = $donation_info['address_id'];
+            $message['image'] = $donation_info['image'];
+            $message['status'] = $donation_info['status'];
+            
+            return $message;
         } 
     }
 

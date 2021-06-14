@@ -1,16 +1,13 @@
 <?php
-    // $_POST['token_id'] = 'aEpUazdjOHNIOCEkMDgvMDYvMjEgMDQ6MTM6MjAhJGRpbWFAZ21haWwuY29tISQxOTIuMTY4LjEuMTUz';
-    // $_POST['role'] = '4';
-
-    if( !empty(isset($_POST['token_id'])) && !empty(isset($_POST['role'])) ) {
+    if( !empty(isset($_POST['token_id'])) &&  ) {
         require_once 'config.php';
         require_once 'auth_login.php';
         $user = is_login();
 
-        $role = check_security($_POST['role'], 'string');
+        if( !empty(isset($_POST['role'])) && !empty(isset($_POST['role'])) == '4' ) {
+            $role = check_security($_POST['role'], 'string');
 
-        if($role == '4') {
-            $sql_select_order = "SELECT * FROM notifications WHERE notification_type_id = 6 ORDER BY notifications_id DESC";
+            $sql_select_order = "SELECT * FROM notifications WHERE notification_type_id = 6 OR notification_type_id = 8 ORDER BY notifications_id DESC";
     
             try {
                 $stmt_order = $conn->prepare($sql_select_order);
@@ -31,16 +28,32 @@
             require_once 'helper.php';
             if($orders_info && $stmt_order->rowCount() >= 1){
                 foreach($orders_info as $order) {
-                    $message['id'] = $order->notifications_id ;
+                    $message['id'] = $order->notifications_id;
                     $message['user'] = getUser($order->user_id);
-                    $payment = getPayment($order->body_id);
-                    $message['description'] = $payment['description'];
-                    $message['address'] = getAddress($payment['address_id'], $order->user_id);
-                    $message['platform'] = getPlatform(getPayment($order->body_id)['platform_id'])['platform'];                
                     $message['title'] = $order->title;
                     $message['type_id'] = $order->notification_type_id;
                     $message['status_id'] = $order->status_id;
                     $message['date'] = $order->date;
+
+                    if($order->notification_type_id == '6') {
+                        $payment = getPayment($order->body_id);
+                        $platform = getPlatform(getPayment($order->body_id)['platform_id'])['platform'];  
+
+                        $message['name'] = $platform['name_en'];
+                        $message['description'] = $payment['description'];
+                        $message['address'] = getAddress($payment['address_id'], $order->user_id);
+                        $message['image'] = getPlatformCategories($platform['id'])['image'];
+
+                    } else if($order->notification_type_id == '8') {
+                        $donation = getDonation($order->body_id);
+
+                        $message['name'] = $donation['name_en'];
+                        $message['description'] = $donation['description_en'];
+                        $message['address'] = getAddress($donation['address_id'], $donation['user_id']);
+                        $message['image'] = $donation['image'];
+                    }
+
+                   
     
                     array_push($orders, $message);
                 }
