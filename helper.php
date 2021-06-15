@@ -867,6 +867,7 @@
         $payment_info = $stmt_select->fetch();
 
         if($payment_info && $stmt_select->rowCount() == 1){
+            $message['user_id'] = $payment_info['user_id'];
             $message['platform_id'] = $payment_info['platform_id'];
             $message['description'] = $payment_info['description'];
             $message['address_id'] = $payment_info['address_id'];

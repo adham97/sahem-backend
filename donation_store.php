@@ -160,10 +160,11 @@
     
             addNotification($notification);
             
-            $user = getUser($$donation_store_id);
+            $user = getUser($donation['user_id']);
+            
             $notification['user_id'] = $user_id;
             $notification['body_id'] = $donation['donation_store_id'];
-            $notification['title'] = "Receiving a parcel from " . $user['first_name'] . ' ' . $user['last_name'];
+            $notification['title'] = "Receiving a parcel from " . $user['first_name'] . " " . $user['last_name'];
             $notification['notification_type_id'] = "8";
             $notification['status_id'] = "1";
     

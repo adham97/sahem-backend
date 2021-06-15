@@ -63,7 +63,7 @@
         if(($donation_info && $stmt_donation->rowCount() >= 1)){
             foreach ($donation_info as $donation) {  
                 $don['donation'] = getDonation($donation->donation_store_id);
-        
+                
                 array_push($results, $don);
             }
         }

@@ -68,7 +68,7 @@
                     
                     for($i = 0; $i < count($drivers); $i++) {
 
-                        $notification['user_id'] = $drivers[$i];
+                        $notification['user_id'] = $payment['user_id'];
                         $notification['body_id'] = $material_payment_id;
                         $notification['title'] = "Receiving a parcel from " . $user['first_name'] . " " . $user['last_name'];
                         $notification['notification_type_id'] = "6";

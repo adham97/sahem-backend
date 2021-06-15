@@ -54,6 +54,8 @@
         $assistance['card_id'] = $card_id;
         $assistance['address_id'] = $address_id;
 
+        
+
         $real_image = base64_decode(check_security($assistance_array[2], 'string'));
         file_put_contents($image_path, $real_image);
 
